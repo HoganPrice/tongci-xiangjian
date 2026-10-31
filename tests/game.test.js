@@ -32,8 +32,9 @@ describe("word normalization", () => {
     expect(normalizeWord("  ＨＥＬＬＯ  World ")).toBe("helloworld");
   });
 
-  it("limits words to twelve characters", () => {
-    expect(Array.from(sanitizeWord("一二三四五六七八九十十一十二十三")).length).toBe(12);
+  it("preserves long input without truncation", () => {
+    const word = "一二三四五六七八九十十一十二十三十四";
+    expect(sanitizeWord(word)).toBe(word);
   });
 });
 

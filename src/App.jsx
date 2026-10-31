@@ -56,7 +56,7 @@ function getRoomUrl(code) {
 }
 
 function cleanName(value) {
-  return Array.from(String(value ?? "").trim()).slice(0, 12).join("");
+  return String(value ?? "").trim();
 }
 
 function useCountdown({ phase, round, durationSec, roundRemainingMs, revealRemainingMs, updatedAt }) {
@@ -206,7 +206,6 @@ function HomeScreen({
               type="text"
               value={name}
               onChange={(event) => onNameChange(event.target.value)}
-              maxLength={12}
               placeholder="朋友怎么称呼你"
               autoComplete="nickname"
             />
@@ -327,7 +326,6 @@ function JoinScreen({
             type="text"
             value={name}
             onChange={(event) => onNameChange(event.target.value)}
-            maxLength={12}
             placeholder="轻轻写下名字"
             autoComplete="nickname"
             autoFocus
@@ -714,7 +712,6 @@ function WritingStage({
             value={word}
             onChange={(event) => setWord(sanitizeWord(event.target.value))}
             placeholder={timeUp ? "本轮时间到了" : submitted ? "已经写好了" : "一个词就好"}
-            maxLength={12}
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"
@@ -731,7 +728,7 @@ function WritingStage({
           </button>
         </div>
         <div className="word-form-meta">
-          <span>{Array.from(word).length} / 12</span>
+          <span>字数不限</span>
           <span>{timeUp ? "等待揭晓" : "在倒计时结束前，随时可以提交"}</span>
         </div>
       </form>

@@ -40,6 +40,9 @@ for (const [name, page] of [
 
 try {
   await host.goto(baseUrl, { waitUntil: "networkidle" });
+  const longNickname = "这是一个超过十二个字但应该完整保留的昵称";
+  await host.getByLabel("你的昵称").fill(longNickname);
+  assert.equal(await host.getByLabel("你的昵称").inputValue(), longNickname);
   await host.getByLabel("你的昵称").fill("小林");
   await host.getByRole("button", { name: "30 秒" }).click();
   await host.getByRole("button", { name: /创建房间/ }).click();
@@ -54,21 +57,28 @@ try {
   await host.getByText("小周", { exact: true }).waitFor({ timeout: 15000 });
   await host.getByRole("button", { name: "开始这一局" }).click();
 
-  await host.locator("#word-input").fill("月亮");
+  const longWord = "这是一个没有长度限制而且应该完整出现的很长的词";
+  await host.locator("#word-input").fill(longWord);
+  assert.equal(await host.locator("#word-input").inputValue(), longWord);
   await guest.locator("#word-input").fill("海");
-  await host.getByRole("button", { name: "提交", exact: true }).click();
-  await guest.getByRole("button", { name: "提交", exact: true }).click();
+  await host.locator("#word-input").press("Enter");
+  await guest.locator("#word-input").press("Enter");
 
   await host.getByText("这一轮，擦肩而过").waitFor({ timeout: 15000 });
   await guest.getByText("这一轮，擦肩而过").waitFor({ timeout: 15000 });
+  assert.equal(
+    await guest.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    true,
+    "long words should not create horizontal overflow on mobile",
+  );
 
   await host.locator("#word-input").waitFor({ timeout: 12000 });
   await guest.locator("#word-input").waitFor({ timeout: 12000 });
 
   await host.locator("#word-input").fill("晚风");
   await guest.locator("#word-input").fill("晚风");
-  await host.getByRole("button", { name: "提交", exact: true }).click();
-  await guest.getByRole("button", { name: "提交", exact: true }).click();
+  await host.locator("#word-input").press("Enter");
+  await guest.locator("#word-input").press("Enter");
 
   await host.getByText("第 2 轮 · 同词相见").waitFor({ timeout: 15000 });
   await guest.getByText("第 2 轮 · 同词相见").waitFor({ timeout: 15000 });

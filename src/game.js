@@ -20,14 +20,10 @@ export function sanitizeCode(value) {
 }
 
 export function sanitizeWord(value) {
-  return Array.from(
-    String(value ?? "")
-      .normalize("NFKC")
-      .trim()
-      .replace(/\s+/g, " "),
-  )
-    .slice(0, 12)
-    .join("");
+  return String(value ?? "")
+    .normalize("NFKC")
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
 export function normalizeWord(value) {

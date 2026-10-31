@@ -47,11 +47,11 @@ export function getPlayerId() {
 }
 
 export function getSavedName() {
-  return (read(NAME_KEY) || "").slice(0, 12);
+  return read(NAME_KEY) || "";
 }
 
 export function saveName(name) {
-  write(NAME_KEY, name.slice(0, 12));
+  write(NAME_KEY, name);
 }
 
 export function saveHostRoom(room) {
