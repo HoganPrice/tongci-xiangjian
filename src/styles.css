@@ -27,6 +27,7 @@
 html {
   min-width: 320px;
   background: var(--paper);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -427,6 +428,35 @@ button:disabled {
 .quick-join input:hover,
 .quick-join input:focus {
   border-color: var(--teal);
+}
+
+.ime-input.is-composing {
+  color: transparent !important;
+  caret-color: transparent;
+  opacity: 0;
+  -webkit-text-fill-color: transparent;
+}
+
+.field:has(.ime-input.is-composing) {
+  position: relative;
+}
+
+.field:has(.ime-input.is-composing)::after {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  left: 1px;
+  display: flex;
+  height: 46px;
+  align-items: center;
+  padding-left: 14px;
+  border-radius: 5px;
+  color: var(--teal);
+  background: #fff;
+  content: "正在选词…";
+  font-size: 12px;
+  font-weight: 650;
+  pointer-events: none;
 }
 
 .duration-field {
@@ -1274,6 +1304,7 @@ button:disabled {
 .game-screen {
   display: grid;
   width: 100%;
+  min-width: 0;
   max-width: 1400px;
   flex: 1;
   grid-template-columns: minmax(0, 1fr) 330px;
@@ -1284,6 +1315,7 @@ button:disabled {
 }
 
 .game-main {
+  min-width: 0;
   min-height: 650px;
   padding: clamp(30px, 5vw, 68px);
   border: 1px solid var(--line-dark);
@@ -1295,6 +1327,7 @@ button:disabled {
 .reveal-stage {
   display: flex;
   width: 100%;
+  min-width: 0;
   max-width: 800px;
   min-height: 100%;
   flex-direction: column;
@@ -1453,8 +1486,11 @@ button:disabled {
 }
 
 .word-chip > strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-family: "Songti SC", "STSong", serif;
   font-size: 16px;
+  word-break: break-word;
   white-space: nowrap;
 }
 
@@ -1492,8 +1528,10 @@ button:disabled {
 }
 
 .word-input-row {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
+  --word-action-width: 109px;
   overflow: hidden;
   border: 1px solid var(--ink);
   border-radius: 7px;
@@ -1527,6 +1565,41 @@ button:disabled {
   color: #9ba39d;
   font-family: "Noto Sans SC", "PingFang SC", sans-serif;
   font-size: 16px;
+}
+
+.word-input-row.is-composing {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(13, 117, 106, 0.11);
+}
+
+.composing-label {
+  position: absolute;
+  z-index: 1;
+  top: 1px;
+  right: var(--word-action-width);
+  bottom: 1px;
+  left: 1px;
+  display: flex;
+  align-items: center;
+  padding-left: 19px;
+  border-radius: 5px 0 0 5px;
+  color: var(--teal);
+  background: #fff;
+  font-size: 13px;
+  font-weight: 650;
+  pointer-events: none;
+}
+
+.composing-label::after {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-left: 7px;
+  border-radius: 50%;
+  background: var(--coral);
+  content: "";
+  animation: dot-pulse 1.2s ease-in-out infinite;
+  vertical-align: middle;
 }
 
 .word-input-row button {
@@ -1635,6 +1708,7 @@ button:disabled {
 
 .reveal-words {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 18px;
   margin: 34px 0 26px;
@@ -1642,6 +1716,7 @@ button:disabled {
 
 .reveal-word-wrap {
   display: flex;
+  min-width: 0;
   flex: 1;
   align-items: center;
   gap: 18px;
@@ -1664,9 +1739,12 @@ button:disabled {
 }
 
 .reveal-words .word-chip > strong {
+  width: 100%;
   max-width: 100%;
   overflow-wrap: anywhere;
   font-size: clamp(2rem, 4vw, 3.5rem);
+  white-space: normal;
+  word-break: break-word;
 }
 
 .match-symbol {
@@ -2264,7 +2342,7 @@ button:disabled {
   }
 
   .game-screen {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: 14px 24px 48px;
   }
 
@@ -2372,6 +2450,11 @@ button:disabled {
 
   .entry-panel {
     padding: 17px;
+  }
+
+  .field input,
+  .quick-join input {
+    font-size: 16px;
   }
 
   .entry-title span {
@@ -2543,6 +2626,15 @@ button:disabled {
     height: 57px;
     padding: 0 14px;
     font-size: 21px;
+  }
+
+  .word-input-row {
+    --word-action-width: 86px;
+  }
+
+  .composing-label {
+    padding-left: 13px;
+    font-size: 12px;
   }
 
   .word-input-row button {

@@ -59,6 +59,75 @@ function cleanName(value) {
   return String(value ?? "").trim();
 }
 
+function ImeInput({
+  value,
+  onValueChange,
+  sanitize = (input) => input,
+  onCompositionChange,
+  className = "",
+  ...props
+}) {
+  const inputRef = useRef(null);
+  const composingRef = useRef(false);
+  const sanitizeRef = useRef(sanitize);
+  const [composing, setComposing] = useState(false);
+  sanitizeRef.current = sanitize;
+
+  useEffect(() => {
+    if (!composingRef.current && inputRef.current && inputRef.current.value !== value) {
+      inputRef.current.value = value ?? "";
+    }
+  }, [value]);
+
+  function changeComposition(next) {
+    if (composingRef.current === next) return;
+    composingRef.current = next;
+    setComposing(next);
+    onCompositionChange?.(next);
+  }
+
+  function commit(rawValue) {
+    const nextValue = sanitizeRef.current(rawValue);
+    if (inputRef.current && inputRef.current.value !== nextValue) {
+      inputRef.current.value = nextValue;
+    }
+    onValueChange(nextValue);
+  }
+
+  function handleChange(event) {
+    if (composingRef.current || event.nativeEvent.isComposing) {
+      changeComposition(true);
+      return;
+    }
+    onValueChange(sanitizeRef.current(event.currentTarget.value));
+  }
+
+  function handleCompositionEnd(event) {
+    commit(event.currentTarget.value);
+    changeComposition(false);
+  }
+
+  function handleBlur(event) {
+    if (composingRef.current) {
+      commit(event.currentTarget.value);
+      changeComposition(false);
+    }
+  }
+
+  return (
+    <input
+      {...props}
+      ref={inputRef}
+      defaultValue={value ?? ""}
+      className={`${className} ${composing ? "is-composing" : ""}`.trim()}
+      onChange={handleChange}
+      onCompositionStart={() => changeComposition(true)}
+      onCompositionEnd={handleCompositionEnd}
+      onBlur={handleBlur}
+    />
+  );
+}
+
 function useCountdown({ phase, round, durationSec, roundRemainingMs, revealRemainingMs, updatedAt }) {
   const [remaining, setRemaining] = useState(0);
 
@@ -202,12 +271,16 @@ function HomeScreen({
 
           <label className="field">
             <span>你的昵称</span>
-            <input
+            <ImeInput
               type="text"
               value={name}
-              onChange={(event) => onNameChange(event.target.value)}
+              onValueChange={onNameChange}
               placeholder="朋友怎么称呼你"
               autoComplete="nickname"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
+              enterKeyHint="next"
             />
           </label>
 
@@ -322,12 +395,16 @@ function JoinScreen({
 
         <label className="field">
           <span>你的昵称</span>
-          <input
+          <ImeInput
             type="text"
             value={name}
-            onChange={(event) => onNameChange(event.target.value)}
+            onValueChange={onNameChange}
             placeholder="轻轻写下名字"
             autoComplete="nickname"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck="false"
+            enterKeyHint="next"
             autoFocus
           />
         </label>
@@ -641,6 +718,7 @@ function WritingStage({
 }) {
   const [word, setWord] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [composing, setComposing] = useState(false);
   const previous = room.history[room.history.length - 1];
   const timeUp = seconds <= 0;
   const submitted = myPlayer.submitted;
@@ -648,12 +726,13 @@ function WritingStage({
   useEffect(() => {
     setWord("");
     setSubmitting(false);
+    setComposing(false);
   }, [room.round, room.phase]);
 
   function handleSubmit(event) {
     event.preventDefault();
     const cleaned = sanitizeWord(word);
-    if (!cleaned || submitted || timeUp) return;
+    if (!cleaned || submitted || timeUp || composing) return;
     setSubmitting(true);
     const accepted = onSubmit(cleaned);
     if (!accepted) setSubmitting(false);
@@ -705,22 +784,33 @@ function WritingStage({
 
       <form className="word-form" onSubmit={handleSubmit}>
         <label htmlFor="word-input">这一轮，你想写</label>
-        <div className={`word-input-row ${submitted ? "is-submitted" : ""}`}>
-          <input
+        <div
+          className={`word-input-row ${submitted ? "is-submitted" : ""} ${composing ? "is-composing" : ""}`}
+        >
+          <ImeInput
             id="word-input"
             type="text"
             value={word}
-            onChange={(event) => setWord(sanitizeWord(event.target.value))}
+            onValueChange={setWord}
+            onCompositionChange={setComposing}
+            sanitize={sanitizeWord}
             placeholder={timeUp ? "本轮时间到了" : submitted ? "已经写好了" : "一个词就好"}
             autoComplete="off"
             autoCorrect="off"
+            autoCapitalize="none"
             spellCheck="false"
+            enterKeyHint="send"
             disabled={submitted || timeUp}
             autoFocus
           />
+          {composing && (
+            <span className="composing-label" aria-live="polite">
+              正在选词…
+            </span>
+          )}
           <button
             type="submit"
-            disabled={!word.trim() || submitted || timeUp || submitting}
+            disabled={!word.trim() || submitted || timeUp || submitting || composing}
             title="提交这个词"
           >
             {submitting ? <LoaderCircle className="spin" size={18} /> : <Send size={18} />}
